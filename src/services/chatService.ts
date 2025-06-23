@@ -291,6 +291,28 @@ export const deleteMessage = async (chatId: string, messageId: string) => {
 };
 
 /**
+ * Deletes a chat room and all its messages.
+ * @param chatId The ID of the chat room to delete.
+ */
+export const deleteChatRoom = async (chatId: string): Promise<void> => {
+  const batch = writeBatch(db);
+  
+  // 1. Delete all messages in the sub-collection
+  const messagesCollectionRef = collection(db, 'chats', chatId, 'messages');
+  const messagesQuerySnapshot = await getDocs(messagesCollectionRef);
+  messagesQuerySnapshot.forEach(doc => {
+    batch.delete(doc.ref);
+  });
+  
+  // 2. Delete the main chat room document
+  const chatDocRef = doc(db, 'chats', chatId);
+  batch.delete(chatDocRef);
+  
+  // 3. Commit the batch operation
+  await batch.commit();
+};
+
+/**
  * Toggles the starred status of a message.
  * @param chatId The ID of the chat containing the message.
  * @param messageId The ID of the message to star/unstar.

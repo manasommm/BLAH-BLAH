@@ -15,7 +15,7 @@ import { ChatMessagesArea } from "@/components/chat/chat-messages-area";
 import { MessageInput } from "@/components/chat/message-input";
 import { TypingIndicator } from "@/components/chat/typing-indicator";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -70,6 +70,7 @@ function ChatPageContent() {
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false);
   const [isMembersSheetOpen, setIsMembersSheetOpen] = useState(false);
+  const [isDeleteGroupAlertOpen, setIsDeleteGroupAlertOpen] = useState(false);
   
   useEffect(() => {
     if (!authUser) return;
@@ -416,6 +417,23 @@ function ChatPageContent() {
       }
       await chatService.addMembersToRoom(activeChat.id, userIds);
   };
+  
+  const handleConfirmDeleteGroup = async () => {
+    if (!activeChat || activeChat.type !== 'room' || !authUser || authUser.id !== activeChat.createdBy) {
+        toast({ title: "Unauthorized", description: "Only the group admin can delete this group.", variant: "destructive"});
+        return;
+    }
+    try {
+        await chatService.deleteChatRoom(activeChat.id);
+        toast({ title: "Group Deleted", description: `The group "${activeChat.name}" has been permanently deleted.` });
+        setActiveChat(null);
+    } catch (error) {
+        console.error("Error deleting group:", error);
+        toast({ title: "Error", description: "Could not delete the group.", variant: "destructive"});
+    } finally {
+        setIsDeleteGroupAlertOpen(false);
+    }
+  };
 
   const handleSuggestionSelect = () => {
     setSuggestedReplies([]);
@@ -512,6 +530,7 @@ function ChatPageContent() {
             onShowMembers={() => setIsMembersSheetOpen(true)}
             onThemeChange={handleThemeChange}
             activeChatTheme={activeChatTheme}
+            onDeleteGroup={() => setIsDeleteGroupAlertOpen(true)}
           />
           {activeChat ? (
             <>
@@ -575,6 +594,27 @@ function ChatPageContent() {
           </AlertDialogContent>
         </AlertDialog>
       )}
+       <AlertDialog open={isDeleteGroupAlertOpen} onOpenChange={setIsDeleteGroupAlertOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the
+                <span className="font-bold"> {activeChat?.type === 'room' ? activeChat.name : ''} </span>
+                group and all of its messages.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConfirmDeleteGroup}
+                className={buttonVariants({ variant: "destructive" })}
+              >
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       <AddMemberDialog
         isOpen={isAddMemberDialogOpen}
         onOpenChange={setIsAddMemberDialogOpen}

@@ -17,7 +17,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
-import { ArrowLeft, MoreVertical, ShieldAlert, FileText, Loader2, BellOff, UserX, Palette, UserPlus } from "lucide-react";
+import { ArrowLeft, MoreVertical, ShieldAlert, FileText, Loader2, BellOff, UserX, Palette, UserPlus, Trash2 } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +34,7 @@ interface ChatHeaderProps {
   onShowMembers?: () => void;
   onThemeChange?: (theme: string) => void;
   activeChatTheme?: string;
+  onDeleteGroup?: () => void;
 }
 
 export function ChatHeader({ 
@@ -49,6 +50,7 @@ export function ChatHeader({
   onShowMembers,
   onThemeChange,
   activeChatTheme,
+  onDeleteGroup,
 }: ChatHeaderProps) {
   const { isMobile, toggleSidebar } = useSidebar();
 
@@ -68,6 +70,7 @@ export function ChatHeader({
   const otherUserId = activeChat?.type === 'dm' ? (activeChat.userIds.find(id => id !== authUser?.id) || '') : '';
   const isBlocked = activeChat?.type === 'dm' && !!otherUserId && authUser?.blockedUsers?.includes(otherUserId);
   const isRoom = activeChat.type === 'room';
+  const isRoomAdmin = isRoom && authUser?.id === activeChat.createdBy;
 
   return (
     <div className={cn("p-3 border-b flex items-center justify-between h-[73px] bg-card shadow-sm", className)}>
@@ -168,6 +171,18 @@ export function ChatHeader({
              <ShieldAlert className="mr-2 h-4 w-4" />
              <span>Report (coming soon)</span>
           </DropdownMenuItem>
+          {isRoomAdmin && (
+            <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={onDeleteGroup}
+                  className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                >
+                   <Trash2 className="mr-2 h-4 w-4" />
+                   <span>Delete Group</span>
+                </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
