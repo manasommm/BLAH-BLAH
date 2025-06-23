@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
@@ -45,6 +44,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { CreateRoomDialog } from "@/components/chat/create-room-dialog";
 import { AddMemberDialog } from "@/components/chat/add-member-dialog";
 import { RoomMembersSheet } from "@/components/chat/room-members-sheet";
+import { updateChatRoomName } from "@/services/chatService";
 import Link from "next/link";
 
 
@@ -435,6 +435,13 @@ function ChatPageContent() {
     }
   };
 
+  const handleUpdateRoomName = async (newName: string) => {
+    if (!activeChat || activeChat.type !== 'room') {
+      throw new Error("No active room selected to update name.");
+    }
+    await updateChatRoomName(activeChat.id, newName);
+  };
+
   const handleSuggestionSelect = () => {
     setSuggestedReplies([]);
   };
@@ -628,6 +635,7 @@ function ChatPageContent() {
         room={activeChat?.type === 'room' ? activeChat : null}
         allUsers={allUsers}
         currentUser={authUser}
+        onUpdateRoomName={handleUpdateRoomName}
       />
     </div>
   );

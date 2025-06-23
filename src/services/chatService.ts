@@ -85,6 +85,19 @@ export const createChatRoom = async (name: string, createdBy: User): Promise<voi
 };
 
 /**
+ * Updates the name of an existing chat room.
+ * @param chatId The ID of the chat room.
+ * @param newName The new name for the room.
+ */
+export const updateChatRoomName = async (chatId: string, newName: string): Promise<void> => {
+  const chatRef = doc(db, "chats", chatId);
+  await updateDoc(chatRef, {
+    name: newName,
+  });
+};
+
+
+/**
  * Adds members to an existing chat room.
  * @param chatId The ID of the chat room.
  * @param userIdsToAdd An array of user IDs to add.
